@@ -46,4 +46,73 @@ Por último, había que obtener la información sobre los trayectos de todas las
 \end{itemize}
 Tras todo este trabajo de campo, ya contaba con todos los datos necesarios para la segunda parte del trabajo.
 \section{Algoritmo de Floyd.}
+El algoritmo de Floyd sirve para encontrar el camino de mínimo coste en un grafo pónderado sin ciclos negativos. El algoritmo funciona del siguiente modo:
+\begin{itemize}
+\item{
+Sobre una matriz de dimensión $V\times V$ inicializamos todas las distancias a infinito salvo la de los vértices adyacentes, cuya distancia corresponde a la de la arista que los une.
+}
+\item{
+A continuación, iteramos sobre el conjunto de vértices enumerados del $0$ a $V - 1$, denominando $k$ al índice de la iteración correspondiente. Por cada pareja de vértices $i$ y $j$ actualizamos su distancia mínima si es mejor la suma de las distancias entre el mejor camino actual entre $i$ y $k$ con la del mejor camino actual entre $k$ y $j$. Debemos ser conscientes que si uno de los caminos es infinito en ningún caso se mejorará el coste entre dos puntos. Un error típico de implementación radica en un posible desbordamiento que ha de tenerse siempre en cuenta.
+En este caso particular utilizaremos $100000$ segundos como tiempo infinito, de este modo, nos guardamos las espaldas ante los desbordamientos sin que suponga un problema en la aplicación del algoritmo. Tras las $V$ iteraciones tendremos en la matriz los tiempos mínimos. La implementación en C++ sería la siguiente:
+\begin{verbatim}
+    for (int k = 0; k < V; k++) {
+        for (int i = 0; i < V; i++) {
+            for (int j = 0; j < V; j++) {
+                int time = AdjMat[i][k] + AdjMat[k][j];
+                if (time < AdjMat[i][j]) {
+                    AdjMat[i][j] = time;
+                }
+            }
+        }
+    }
+\end{verbatim}
+}
+\item{
+En este caso particular, junto con la matriz de costes o de adyacencia, utilizaremos una matriz adicional de predecesores. Cada vez que actualicemos un coste actualizaremos el predecesor del camino entre $i$ y $j$ para poder reconstruir el camino escogido entre cualesquiera dos estaciones. Inicialmente los predecesores de los caminos de $i$ a $j$ toman el valor de $i$, para, tras una actualización del camino de $i$ a $j$ por el de $i$ a $j$ pasando por $k$, tomar el valor del predecesor de $k$ a $j$. Tras todas las iteraciones, la forma de reconstruir un camino es recursiva:
+\begin{verbatim}
+    void printPath(int i, int j) {
+        if (i != j) printPath(i, p[i][j]);
+        cout << " -> " << j;
+    }
+\end{verbatim}
+}
+\item{
+Otra peculiaridad de esta implementación no recogida comúnmente en el algoritmo de Floyd, es el uso de penalizaciones. Cuando realizamos un viaje en Metro, si tenemos que hacer un trasbordo se requiere emplear más tiempo en el viaje para poder realizar el cambio de tren. En un grafo habitual no existen estas penalizaciones puesto que el concepto de ``líneas'' y ``estaciones intercambiador'' no existe. Por ello, cada vez que se pretende hacer una actualización de coste, debemos preguntar por la última línea utilizada entre $i$ y $k$ y la primera entre $k$ y $j$. Si difieren debemos añadir una penalización al tiempo del camino. Para esto contamos con una matriz de vectores de enteros donde almacenaremos las líneas utilizadas en cada trayecto.
+}
+\end{itemize}
+Con todas estas observaciones tenemos que el algoritmo de Floyd modificado para este problema sería como sigue:
+\begin{verbatim}
+void floyd() {
+    for (int i = 0; i < V; i++)
+        for (int j = 0; j < V; j++)
+            p[i][j] = i;
+    for (int k = 0; k < V; k++)
+        for (int i = 0; i < V; i++)
+            for (int j = 0; j < V; j++) {
+                int time = AdjMat[i][k] + AdjMat[k][j];
+                if (!Trans[i][k].empty() && !Trans[k][j].empty()) {
+                    time += Trans[i][k][Trans[i][k].size()-1] == Trans[k][j][0]?
+                        0: penalizacion;
+                }
+                if (time < AdjMat[i][j]) {
+                    AdjMat[i][j] = time;
+                    p[i][j] = p[k][j];
+                    Trans[i][j] = Trans[i][k];
+                    for (int l = 0; l < Trans[k][j].size(); l++)
+                        Trans[i][j].push_back(Trans[k][j][l]);
+                }
+            }
+}
+\end{verbatim}
+Donde se hace uso de variables globales.
+\section{Inconvenientes.}
+Debido a una serie de errores en la base de datos de Metro de Madrid han surgido una serie de problemas aún no solventados:
+\begin{itemize}
+\item{
+Por motivos desconocidos, Metro de Madrid considera que las estaciones de la línea 7 entre Estadio Olímpico y Hospital del Henares y de la línea 9 del municipio de Arganda del Rey y Rivas Vaciamadrid no están conectadas con el resto de estaciones de Metro. Cierto es que son estaciones de ámbito especial pero no tiene sentido que las busquedas realizadas en la página de Trayecto recomendado sean infructuosas.
+}
+\item{
+Otro problema derivado de la obtención de datos de la página web de Metro de Madrid consiste en la existencia de transbordos largos entre las estaciones de Noviciado y Plaza de España y Acacias y Embajadores. Son pares de estaciones situadas en líneas distintas conectadas entre sí. Metro de Madrid no les da un trato trayecto cuando tratamos de ir de una a la otra, por el contrario, las considera a efectos prácticos como una única estación pero con códigos distintos. Esta situación provoca inconsistencias en los resultados obtenidos tras la aplicación del algoritmo, aunque, despreciables.
+}
+\end{itemize}
 \end{document}
