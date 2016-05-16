@@ -41,7 +41,6 @@ vector<vi> AdjList;
 int visited[275];
 
 ii dsn[275];
-//int p3[275][275];
 vector<ii> nearsn;
 
 void floyd() {
@@ -141,7 +140,6 @@ int main() {
         res = stmt->executeQuery("SELECT id FROM Stations");
         int i = 0;
         while (res->next()) {
-            //cout << res->getString("user") << endl;
             idToIndex[res->getString(1)] = i;
             indexToId[i] = res->getString(1);
             i++;
@@ -161,8 +159,6 @@ int main() {
             line[idToIndex[res->getString("id")]] |= (1 << atoi(res->getString("line").c_str()));
         }
         delete res;
-        /*for (i = 0; i < 275; i++) cout << line[i] << " ";
-        cout << endl;*/
 
         cout << "Cargando tiempos..." << endl;
         for (i = 0; i < 275; i++)
@@ -180,24 +176,20 @@ int main() {
             }
         }
         delete res;
-        cout << "Floyd!!!" << endl;
+        cout << "Floyd I!!!" << endl;
         floyd();
         cout << "Listo." << endl;
 
 
         for (i = 0; i < 275; i++) {
-            //cout << "T:" << i << endl;
             res = stmt->executeQuery("SELECT ID2 FROM Trayectos WHERE Estaciones = 1 AND ID1 = " + indexToId[i]);
             while (res->next()) {
                 AdjList[i].push_back(idToIndex[res->getString("id2")]);
-                //AdjList[idToIndex[res->getString("id2")]].push_back(i);
-                //cout << res->getString("id2") << " ";
             }
-            //cout << endl;
             delete res;
         }
 
-        res = stmt->executeQuery("SELECT id FROM Supernodos");//("SELECT id FROM Stations WHERE (SELECT COUNT(*) FROM Line WHERE Stations.id = Line.id)>1");
+        res = stmt->executeQuery("SELECT id FROM Supernodos"); //("SELECT id FROM Stations WHERE (SELECT COUNT(*) FROM Line WHERE Stations.id = Line.id)>1");
         i = 0;
         while (res->next()) {
             supernodos[i] = res->getString("id");
@@ -217,7 +209,6 @@ int main() {
                 for (int j = 0; j < AdjList[idToIndex[supernodos[i]]].size(); j++) {
                     dfs(AdjList[idToIndex[supernodos[i]]][j], l, i);
                 }
-                //dfs(idToIndex[supernodos[i]],l, i);
             }
         }
         floyd2();
@@ -227,32 +218,6 @@ int main() {
                 dist(i, i, 0);
             }
         }
-        /*for (int i = 0; i < 275; i++) cout << nearsn[i].first << nearsn[i].second << " ";
-        cout << endl;*/
-
-
-        /*for (i = 0; i < 39; i++) {
-            for(int j = 0; j < 39; j++) {
-                printf("%4d", AdjMat2[i][j]);
-                //cout << AdjMat2[i][j] << " ";
-            }
-            cout << endl;
-        }*/
-
-        /*
-                string id1 = supernodos[i], id2 = supernodos[j];
-                int l1 = line[idToIndex[id1]], l2 = line[idToIndex[id2]];
-                for (int l = 1; l <= 16; l++) {
-                    if ((l1 >> l)%2 && (l2 >> l)%2) {
-                        res = stmt->executeQuery("SELECT Tiempo FROM Trayectos AS T WHERE Tiempo in (SELECT Tiempo FROM Trayectos WHERE id1 = T.id1 AND id2 IN (SELECT id FROM Supernodos) LIMIT 2) AND id1 = "+id1+" AND id2 = "+id2);
-                        if (res->next()) {
-                            AdjMat2[i][j] = atoi(res->getString("Tiempo").c_str()) - 50;
-                            Transbordos[i][j].push_back(l);
-                        }
-                        delete res;
-                    }
-                }
-            }*/
 
         delete stmt;
         delete con;
@@ -300,22 +265,14 @@ int main() {
                     cout << endl;
                     cout << AdjMat2[sn[id1]][sn[id2]] << endl;
                 } else if (sn.count(id1)) {
-                    //cout << dsn[idToIndex[id2]].first <<  " " << dsn[idToIndex[id2]].second << endl;
-                    //cout << nearsn[idToIndex[id2]].first << " " << nearsn[idToIndex[id2]].second << endl;
                     int t1 = dsn[idToIndex[id2]].first + AdjMat2[sn[id1]][nearsn[idToIndex[id2]].first];
-                    //cout << t1 << endl;
                     int t2 = dsn[idToIndex[id2]].second + (nearsn[idToIndex[id2]].second != -1? AdjMat2[sn[id1]][nearsn[idToIndex[id2]].second]: 0);
-                    //cout << t2 << endl;
 
                     if (t1 < t2 && t1 < 100000) {
-                        //cout << "t3" << t1 << nearsn[idToIndex[id2]].first << endl;
                         printPath2(sn[id1], nearsn[idToIndex[id2]].first);
-                        //cout << "t4" << endl;
                         cout << endl << t1 << endl;
                     } else if (t2 < 100000) {
-                        //cout << "t5" << t2 << nearsn[idToIndex[id2]].second << endl;
                         printPath2(sn[id1], nearsn[idToIndex[id2]].second);
-                        //cout << "t6" << endl;
                         cout << endl << t2 << endl;
                     } else cout << "Sin camino" << endl;
 
