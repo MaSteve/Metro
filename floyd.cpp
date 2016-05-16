@@ -177,7 +177,7 @@ int main() {
         rdt1 = high_resolution_clock::now();
         for (i = 0; i < 275; i++)
             for(int j = 0; j < 275; j++)
-                AdjMat[i][j] = 100000; //Tiempo que se tarda en llegar de Vallecas a Ponferrada por la línea 1.
+                AdjMat[i][j] = (i == j? 0: 100000); //Tiempo que se tarda en llegar de Vallecas a Ponferrada por la línea 1.
         res = stmt->executeQuery("SELECT id1, id2, Tiempo FROM Trayectos WHERE Estaciones = 1");
         while (res->next()) {
             AdjMat[idToIndex[res->getString("id1")]][idToIndex[res->getString("id2")]] = atoi(res->getString("Tiempo").c_str()) - 50; //Magic number
@@ -228,7 +228,7 @@ int main() {
         rdt1 = high_resolution_clock::now();
         for (i = 0; i < 39; i++)
             for(int j = 0; j < 39; j++)
-                AdjMat2[i][j] = 100000;
+                AdjMat2[i][j] = (i == j? 0: 100000);
 
         for (i = 0; i < 39; i++) {
             for (int l = 1; l <= 16; l++) {
@@ -301,9 +301,11 @@ int main() {
 
                     if (t1 < t2 && t1 < 100000) {
                         printPath2(sn[id1], nearsn[idToIndex[id2]].first);
+                        cout << endl;
                         printTime(t1);
                     } else if (t2 < 100000) {
                         printPath2(sn[id1], nearsn[idToIndex[id2]].second);
+                        cout << endl;
                         printTime(t2);
                     } else cout << "Sin camino" << endl;
 
@@ -313,9 +315,11 @@ int main() {
 
                     if (t1 < t2 && t1 < 100000) {
                         printPath2(nearsn[idToIndex[id1]].first, sn[id2]);
+                        cout << endl;
                         printTime(t1);
                     } else if (t2 < 100000) {
                         printPath2(nearsn[idToIndex[id1]].second, sn[id2]);
+                        cout << endl;
                         printTime(t2);
                     } else cout << "Sin camino" << endl;
 
@@ -333,15 +337,19 @@ int main() {
                         int t = min(min(t11, t12), min(t21, t22));
                         if (t11 == t) {
                             printPath2(nearsn[idToIndex[id1]].first, nearsn[idToIndex[id2]].first);
+                            cout << endl;
                             printTime(t11);
                         } else if (t12 == t) {
                             printPath2(nearsn[idToIndex[id1]].first, nearsn[idToIndex[id2]].second);
+                            cout << endl;
                             printTime(t12);
                         } else if (t21 == t) {
                             printPath2(nearsn[idToIndex[id1]].second, nearsn[idToIndex[id2]].first);
+                            cout << endl;
                             printTime(t21);
                         } else if (t22 == t) {
                             printPath2(nearsn[idToIndex[id1]].second, nearsn[idToIndex[id2]].second);
+                            cout << endl;
                             printTime(t22);
                         } else cout << "Sin camino" << endl;
                     }
