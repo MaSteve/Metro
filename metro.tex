@@ -19,7 +19,7 @@
 
 \begin{document}
 \title{Aplicación de Floyd a la red de Metro de Madrid}
-\author{Marco Antonio Garrido Rojo}
+\author{Marco Antonio Garrido Rojo\thanks{\url{https://github.com/MaSteve/Metro} Este trabajo puede encontrarse en GitHub.}}
 \date{}
 \maketitle
 \section{Introducción}
@@ -115,4 +115,41 @@ Por motivos desconocidos, Metro de Madrid considera que las estaciones de la lí
 Otro problema derivado de la obtención de datos de la página web de Metro de Madrid consiste en la existencia de transbordos largos entre las estaciones de Noviciado y Plaza de España y Acacias y Embajadores. Son pares de estaciones situadas en líneas distintas conectadas entre sí. Metro de Madrid no les da un trato trayecto cuando tratamos de ir de una a la otra, por el contrario, las considera a efectos prácticos como una única estación pero con códigos distintos. Esta situación provoca inconsistencias en los resultados obtenidos tras la aplicación del algoritmo, aunque, despreciables.
 }
 \end{itemize}
+\section{Supernodos.}
+Una propuesta alternativa del trabajo era aplicar el algoritmo de Floyd sobre las estaciones intercambiadores y posteriormente realizar el cálculo del camino mínimo entre los restantes pares de estaciones a partir del resultado obtenidos previamente.\\ \par
+Un primer problema radica en determinar cuáles son los supernodos colindantes a un supernodo dado. No es fácil conocer este dato ya que sobre la base de datos no hay una forma cómoda de saberlo. Una primera aproximación utilizaría la distancia en estaciones, pero no es exacta ya que en un sentido puede ser que encuentres varios supernodos más próximos que por el otro sentido, algo en lo que no estamos interesados. La única forma aparente de sacarlo consiste en construir el grafo y posteriormente aplicar una búsqueda en profundidad a través del mismo manteniéndose siempre en la misma línea.\\ \par
+Tras programar una búsqueda en profundidad, apoyándose en una lista de adyacencia, podemos volver a aplicar Floyd sobre un grafo con un menor número de vértices a falta de procesar la distancia entre el resto de estaciones normales. En la red de Metro de Madrid existen 39 supernodos de modo que Floyd se ejecuta en un tiempo bastante menor.\\ \par
+Una vez procesados los caminos entre supernodos, debemos aplicar aplicar otra búsqueda en anchura sobre todas las estaciones normales en busca de los dos supernodos más cercanos\footnote{Hay estaciones con un único supernodo cercano.}. En este proceso aprovechamos para calcular la distancia entre las estaciones que comparten un mismo tramo de vía, es decir, se encuentran entre los mismos supernodos. \\ \par
+Tras todos estos preparativos a continuación se detalla la forma en que se puede conocer ahora el camino mínimo entre dos estaciones cualesquiera:
+\begin{itemize}
+\item{
+En primer lugar, si se solicita el camino entre dos supernodos, la forma de obtener el camino mínimo es identica a la del caso anterior, preguntando a la matriz de adyacencia de Floyd y llamando a la función de reconstrucción del camino\footnote{Hay que tener en cuenta que en esta ocasión solo mostraremos los supernodos recorridos en el camino, excluyendo el resto de estaciones.}.
+}
+\item{
+Si una de las estaciones no es un supernodo, lo que haremos será calcular la menor de las distancias entre la estación a su primer supernodo y de este al otro supernodo solicitado y, de forma análoga, pasando por su segundo supernodo de existir. Existen por tanto dos caminos posibles y nos quedamos con el mejor de ellos.
+}
+\item{
+Si ninguna de las estaciones es supernodo, puede pasar que compartan mismo tramo de vía, en cuyo caso nos valemos de lo procesado en el último recorrido en profundidad, o que no compartan mismo tramo de vía. En este último caso, existen cuatro caminos posibles y nos quedaremos con el mejor de ellos.
+}
+\end{itemize}
+\section{Eficiencia y comparación de tiempos.}
+Utilizando el reloj del ordenador nos encontramos con los siguiente tiempo:
+\begin{verbatim}
+    Conexión a la base de datos:
+    28,907 ms
+    Cargar estaciones:
+    2,916 ms
+    Cargar líneas:
+    2,068 ms
+    Cargar tiempos:
+    5,191 ms
+    Floyd I:
+    233,222 ms
+    Obtener supernodos (dfs):
+    1,983 ms
+    Floyd II:
+    12,111 ms
+\end{verbatim}
+Es evidente que el algoritmo de Floyd sobre supernodos pulveriza el tiempo del algoritmo de Floyd sobre las 275 estaciones. Esto se debe a su complejidad cúbica, donde una diferencia de 236 nodos es muy significativa.\\ \par
+Hay que tener en cuenta que la diferencia en uso de memoria casi no difiere y que el único inconveniente es un incremente de tiempo a la hora de solicitar un camino mínimo ya calculado, puesto que, hay una lógica de decisión más compleja.
 \end{document}
